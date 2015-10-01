@@ -1,9 +1,10 @@
-
 //vars and conf
 var currentClass = '';
 
-var single = 16;
-var middle = single / 2;
+var simple  = 1;
+var single  = 16;
+var middle  = single / 2;
+var big     = single * 3;
 
 var confFixed = {
   'flex': {
@@ -18,10 +19,10 @@ var confFixed = {
         'margin': {
           'marginRight': [middle],
           'marginLeft': [middle],
-          'marginTop': [single, middle]
+          'marginBottom': [single, middle, big, simple]
         },
         'padding': {
-          'padding': [middle, single]
+          'padding': [single]
         },
       }
     }
@@ -78,7 +79,7 @@ function recorrerObj(objetive, key) {
         for (; valueRotate[u];) {
             
           //Save de name and attr of css in vars for build de finish output framework
-          classKey          = Object.keys(confFixed)[0];
+          classKey            = Object.keys(confFixed)[0];
           classWidth        = keyWidth + 1;
           classRotateKey    = keyRotate;
           classRotateValue  = valueRotate[u];
