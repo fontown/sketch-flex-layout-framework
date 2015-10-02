@@ -4,22 +4,23 @@ var currentClass = '';
 var simple  = 1;
 var single  = 16;
 var middle  = single / 2;
-var big     = single * 3;
+var big     = single * 2;
 
 var confFixed = {
   'flex': {
     'width': ['1', '2'],
     'attr': {
+      'margin' : ['marginTop', 'marginBottom', 'marginLeft', 'marginRight'],
+      'padding' : ['paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight'],
       'rotate': {
         'justifyContent': ['center'],
-        'alignContent': ['center'],
         'flexDirection': ['row']
       },
       'fixed': {
         'margin': {
           'marginRight': [middle],
           'marginLeft': [middle],
-          'marginBottom': [single, middle, big, simple]
+          'marginBottom': [single, middle, big, simple],
         },
         'padding': {
           'padding': [single]
@@ -59,15 +60,45 @@ function recorrerJsonLevel(lvl) {
 };
 
 
+function resumeClassName(className) {
+  //working with name class in basic case, for example MR8 = marginRight:8;
+  classFixedUppercaseFirstLetter  = className.charAt(0).toUpperCase() + className.slice(1);
+  classFixedArray                 = classFixedUppercaseFirstLetter.split(/(?=[A-Z])/);
+  classFixedSimple                = ( classFixedArray.length > 1 ) ? classFixedArray[0].charAt(0) + classFixedArray[1].charAt(0) : classFixedArray[0].charAt(0);
+  return classFixedSimple;
+}
+
+
+function basicZeros(measure, key) {
+  var i = 0;
+  var keyIn = ( key == 'margin' ) ? confFixed.flex.attr.margin : confFixed.flex.attr.padding;
+  var attrZeros = '';
+  var attrZeroAll = '';
+  var classNameAttrZeros = '';
+  
+  $.each(keyIn, function(key, value) {
+    attrZeros = '<br \>.' + resumeClassName(value) + '0 { ';
+    $.each(keyIn, function(key1, value1) {
+        if ( value != value1)
+          attrZeros +=  value1 + ':' + measure + '; ';
+    });
+  
+    attrZeros += value + ':0; }';
+    attrZeroAll += attrZeros;
+  
+  });
+
+  return attrZeroAll;
+};
+
+
 //Iteration for json
 function recorrerObj(objetive, key) {
   classFixed = key;
- 
-  //working with name class in basic case, for example MR8 = marginRight:8;
-  classFixedUppercaseFirstLetter  = classFixed.charAt(0).toUpperCase() + classFixed.slice(1);
-  classFixedArray                 = classFixedUppercaseFirstLetter.split(/(?=[A-Z])/);
-  classFixedSimple                = ( classFixedArray.length > 1 ) ? classFixedArray[0].charAt(0) + classFixedArray[1].charAt(0) : classFixedArray[0].charAt(0);
-  var cssOutFixedSimple           = '';
+
+  resumeClassName(classFixed);
+   
+  var cssOutFixedSimple = '';
   
   var i = 0;
   
@@ -79,7 +110,7 @@ function recorrerObj(objetive, key) {
         for (; valueRotate[u];) {
             
           //Save de name and attr of css in vars for build de finish output framework
-          classKey            = Object.keys(confFixed)[0];
+          classKey          = Object.keys(confFixed)[0];
           classWidth        = keyWidth + 1;
           classRotateKey    = keyRotate;
           classRotateValue  = valueRotate[u];
@@ -94,6 +125,10 @@ function recorrerObj(objetive, key) {
             cssFixedSimple        = '<br\>.' + classFixedSimple + objetive[i] + '\n{\n';
             cssContentFixedSimple = '\t' + classFixed + ':' + objetive[i] + ';\n' + '\n}\n';
             cssOutFixedSimple = cssFixedSimple + cssContentFixedSimple;
+            if ( classFixed == 'margin' || classFixed == 'padding' )
+              cssOutFixedSimple = cssFixedSimple + cssContentFixedSimple + basicZeros(objetive[i], classFixed);
+            else
+              cssOutFixedSimple = cssFixedSimple + cssContentFixedSimple;
           }
            
           cssOutFlex        = classNameOutFlex + classContentFlex;
