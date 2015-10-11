@@ -1,40 +1,83 @@
 //vars and conf
 var currentClass = '';
+var noRepeat = false;
 
+var zero    = '0';
 var simple  = 1;
 var single  = 16;
+var double  = single * 2;
 var middle  = single / 2;
-var big     = single * 2;
+var medium  = single * 4;
+var big     = single * 8;
 
 var confFixed = {
   'flex': {
     'width': ['1', '2'],
+    'all' : [zero, single, double, middle, medium],
     'attr': {
       'margin' : ['marginTop', 'marginBottom', 'marginLeft', 'marginRight'],
       'padding' : ['paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight'],
       'rotate': {
-        'justifyContent': ['center'],
+        'alignItems': ['center'],
+        'justifyContent': ['center', 'space-around', 'space-between'],
         'flexDirection': ['row']
       },
       'fixed': {
         'margin': {
-          'marginRight': [middle],
-          'marginLeft': [middle],
-          'marginBottom': [single, middle, big, simple],
+          'marginRight':[zero, simple, single, double, middle, medium, big],
+          'marginLeft':[zero],
+          'marginBottom': [zero, simple, single, double, middle, medium, big],
+          'marginTop': [zero],
+          'margin': [simple, single, double, middle, medium]
         },
         'padding': {
-          'padding': [single]
+          'padding': [zero, simple, single, double, middle, medium, big],
+          'paddingTop': [zero],
+          'paddingBottom': [zero, simple, single, double, middle, medium, big]
         },
+        'position': {
+          'left': [single, double],
+          'right': [single, double],
+          'top': [single, double],
+          'bottom': [single, double]
+        }
       }
     }
   }
 }
+
 
 //Functions
 function toTitleCase(str) {
   return str.replace(/\w\S*/g, function(txt) {
     return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
   });
+}
+
+
+function returnNameVars(name) {
+  switch(name) {
+    case simple:
+        return 'simple';
+        break;
+    case single:
+        return 'single';
+        break;
+     case middle:
+        return 'middle';
+        break;
+     case big:
+        return 'big';
+        break;
+      case medium:
+        return 'medium';
+        break;
+      case double:
+        return 'double';
+        break;
+    default:
+       return 'zero';
+  }
 }
 
 //Append css in div
@@ -71,23 +114,28 @@ function resumeClassName(className) {
 
 function basicZeros(measure, key) {
   var i = 0;
+  var count = 0;
   var keyIn = ( key == 'margin' ) ? confFixed.flex.attr.margin : confFixed.flex.attr.padding;
   var attrZeros = '';
   var attrZeroAll = '';
   var classNameAttrZeros = '';
-  
-  $.each(keyIn, function(key, value) {
-    attrZeros = '<br \>.' + resumeClassName(value) + '0 { ';
-    $.each(keyIn, function(key1, value1) {
-        if ( value != value1)
-          attrZeros +=  value1 + ':' + measure + '; ';
-    });
-  
-    attrZeros += value + ':0; }';
-    attrZeroAll += attrZeros;
-  
-  });
+    
+  for (; confFixed.flex.all[count];) {
+    if ( returnNameVars(confFixed.flex.all[count]) != returnNameVars(measure) ) {
+      $.each(keyIn, function(key, value) { 
+        attrZeros = '<br \>.all' + toTitleCase(returnNameVars(measure)) + resumeClassName(value) + toTitleCase(returnNameVars(confFixed.flex.all[count])) + '{';
+        $.each(keyIn, function(key1, value1) {
+          if ( value != value1)
+            attrZeros +=  value1 + ':' + measure + '; ';
+        });
 
+        attrZeros += value + ':'+  confFixed.flex.all[count] + ';}';
+        attrZeroAll += attrZeros;
+
+      });
+    }
+    count++;
+  }
   return attrZeroAll;
 };
 
@@ -114,31 +162,48 @@ function recorrerObj(objetive, key) {
           classWidth        = keyWidth + 1;
           classRotateKey    = keyRotate;
           classRotateValue  = valueRotate[u];
+                    
+          if ( classFixed == 'top' || classFixed == 'left' || classFixed == 'right' || classFixed == 'bottom') {
+            classNameOutFlex  = '.' + classWidth + toTitleCase(classRotateKey) + toTitleCase(classRotateValue.replace('-', '')) + classFixedSimple + toTitleCase(returnNameVars(objetive[i])) + '\n{\n';
+            classContentFlex  = '\t position:absolute;' + classKey + ':' + classWidth + ';\n' + '\t' + classRotateKey + ':' + classRotateValue + ';\n' + '\t' + classFixed + ':' + objetive[i] + ';\n' + '\n}\n';
+          } else {
+            classNameOutFlex  = '.' + classWidth + toTitleCase(classRotateKey) + toTitleCase(classRotateValue.replace('-', '')) + classFixedSimple + toTitleCase(returnNameVars(objetive[i])) + '\n{\n';
+            classContentFlex  = '\t' + classKey + ':' + classWidth + ';\n' + '\t' + classRotateKey + ':' + classRotateValue + ';\n' + '\t' + classFixed + ':' + objetive[i] + ';\n' + '\n}\n';
+          }          
           
-          classNameOutFlex  = '.' + classWidth + toTitleCase(classRotateKey) + toTitleCase(classRotateValue.replace('-', '')) + classFixedSimple + objetive[i] + '\n{\n';
-          classContentFlex  = '\t' + classKey + ':' + classWidth + ';\n' + '\t' + classRotateKey + ':' + classRotateValue + ';\n' + '\t' + classFixed + ':' + objetive[i] + ';\n' + '\n}\n';
           
-          classNameOut      = '<br\>.' + classRotateKey.toLowerCase() + toTitleCase(classRotateValue.replace('-', '')) + classFixedSimple + objetive[i] + '\n{\n';
-          classContent      = '\t' + classRotateKey + ':' + classRotateValue + ';\n' + '\t' + classFixed + ':' + objetive[i] + ';\n' + '\n}\n';
+          if ( classFixed == 'top' || classFixed == 'left' || classFixed == 'right' || classFixed == 'bottom') {
+            classNameOut      = '<br\>.' + classRotateKey.toLowerCase() + toTitleCase(classRotateValue.replace('-', '')) + classFixedSimple + toTitleCase(returnNameVars(objetive[i])) + '\n{\n';
+            classContent      = '\t position:absolute;' + classRotateKey + ':' + classRotateValue + ';\n' + '\t' + classFixed + ':' + objetive[i] + ';\n' + '\n}\n';
+          } else {
+            classNameOut      = '<br\>.' + classRotateKey.toLowerCase() + toTitleCase(classRotateValue.replace('-', '')) + classFixedSimple + toTitleCase(returnNameVars(objetive[i])) + '\n{\n';
+            classContent      = '\t' + classRotateKey + ':' + classRotateValue + ';\n' + '\t' + classFixed + ':' + objetive[i] + ';\n' + '\n}\n';
+          }
           
-          if ( currentClass != classFixed + objetive[i] ) {
-            cssFixedSimple        = '<br\>.' + classFixedSimple + objetive[i] + '\n{\n';
-            cssContentFixedSimple = '\t' + classFixed + ':' + objetive[i] + ';\n' + '\n}\n';
-            cssOutFixedSimple = cssFixedSimple + cssContentFixedSimple;
-            if ( classFixed == 'margin' || classFixed == 'padding' )
+          if ( currentClass != classFixed + toTitleCase(returnNameVars(objetive[i])) ) {
+            cssFixedSimple        = '<br\>.' + classFixedSimple + toTitleCase(returnNameVars(objetive[i])) + '\n{\n';
+            if ( classFixed == 'top' || classFixed == 'left' || classFixed == 'right' || classFixed == 'bottom') {
+               cssContentFixedSimple = '\t position:absolute; ' + classFixed + ':' + objetive[i] + ';\n' + '\n}\n';           
+            } else {
+              cssContentFixedSimple = '\t' + classFixed + ':' + objetive[i] + ';\n' + '\n}\n';            
+            }
+            
+            if ( classFixed == 'margin' || classFixed == 'padding') {
               cssOutFixedSimple = cssFixedSimple + cssContentFixedSimple + basicZeros(objetive[i], classFixed);
-            else
+              noRepeat = true;
+            } else {
               cssOutFixedSimple = cssFixedSimple + cssContentFixedSimple;
+            }
           }
            
           cssOutFlex        = classNameOutFlex + classContentFlex;
           cssOut            = classNameOut + classContent;
           
-          cssAll = ( currentClass != classFixed + objetive[i] ) ? cssOutFlex + cssOut + cssOutFixedSimple : cssOutFlex + cssOut;
+          cssAll = ( currentClass != classFixed + toTitleCase(returnNameVars(objetive[i])) ) ? cssOutFlex + cssOut + cssOutFixedSimple : cssOutFlex + cssOut;
           
           print('.result', cssAll);
           
-          currentClass = classFixed + objetive[i];
+          currentClass = classFixed + toTitleCase(returnNameVars(objetive[i]));
           u++;
         }
         u = 0;
